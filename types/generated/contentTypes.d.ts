@@ -394,7 +394,7 @@ export interface ApiOfferOffer extends Schema.CollectionType {
         },
         number
       >;
-    picture: Attribute.Media<'images', true> & Attribute.Required;
+    picture: Attribute.Media<'images', true>;
     owner: Attribute.Relation<
       'api::offer.offer',
       'manyToOne',

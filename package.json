@@ -1,16 +1,19 @@
 {
   "name": "le-bon-coin-project",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "description": "A Strapi application",
+  "license": "MIT",
+  "author": {
+    "name": "A Strapi developer"
+  },
   "scripts": {
+    "build": "strapi build",
+    "deploy": "strapi deploy",
     "develop": "strapi develop",
     "start": "strapi start",
-    "build": "strapi build",
-    "strapi": "strapi",
-    "deploy": "strapi deploy"
+    "strapi": "strapi"
   },
-  "devDependencies": {},
   "dependencies": {
     "@strapi/plugin-cloud": "4.25.11",
     "@strapi/plugin-i18n": "4.25.11",
@@ -23,15 +26,12 @@
     "react-router-dom": "5.3.4",
     "styled-components": "5.3.3"
   },
-  "author": {
-    "name": "A Strapi developer"
+  "devDependencies": {},
+  "engines": {
+    "node": "20.0.0",
+    "npm": "8.5.5"
   },
   "strapi": {
     "uuid": "444e2674-1e83-41cd-bca3-c04179048128"
-  },
-  "engines": {
-    "node": ">=18.0.0 <=20.x.x",
-    "npm": ">=6.0.0"
-  },
-  "license": "MIT"
+  }
 }
