@@ -1,3 +1,6 @@
+// Bonus : Un utilisateur ne peut poster une offre que s'il en est le propriétaire
+// Methode 2 : modifier la policy is-authorized et l'appliquer à la route create
+
 module.exports = async (policyContext, config, { strapi }) => {
   // (on a rajouté async devant car plus bas nous allons faire des requetes a l'ESA de strapi)
   // Pour recuperer l'id de l utilisateur qui fait la requete : ctx.state.user, ATTENTION!!! IMPORTANT!! : ici les infos concernant la requête se trouvent dans policyContext, et non ctx ! ;)

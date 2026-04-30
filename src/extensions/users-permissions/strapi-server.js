@@ -1,7 +1,16 @@
+// Fichier crée pour lier un fichier a un utilisateur (ex: une photo, un avatar)
+// = Pour customiser la route qui permet de creer un utilisateurnil faut :
+// - intercepter la requete qui interroge la route post /api/auth/local/register
+// - creer l'utilisateur
+// - aller chercher l'id qui lui a ete attribué
+// - uploader l'imge liée a l'utilisateur
+// Pour ce faire on cree ce fichier (attention, le nom doit etre celui ci exactement : strapi-server.js) dans leqeuel on met ce code :
+
 module.exports = (plugin) => {
   const register = plugin.controllers.auth.register;
 
   plugin.controllers.auth.register = async (ctx) => {
+    // interception de la requete
     // Création normale du user sans l'image
     await register(ctx);
     if (ctx.request.files?.avatar) {

@@ -1,10 +1,14 @@
+// @ts-nocheck (pour eviter les avertissements typescript)
+
 "use strict";
 
 /**
  * offer controller
  */
 
-// @ts-ignore
+// J'importe stripe en lui transmettant mon api secret que jai cache dans une variable d'environnement
+const stripe = require("stripe")(process.env.STRIPE_API_SECRET);
+
 const { createCoreController } = require("@strapi/strapi").factories;
 
 module.exports = createCoreController(
@@ -42,9 +46,30 @@ module.exports = createCoreController(
         return { message: error.message };
       }
     },
+    // je crée un controller mon controller pour la nouvelle route buy
+    async buy(ctx) {
+      try {
+        // j'interroge les serveurs de stripe
+        const { status } = await stripe.charges.create({
+          // je transmet un objet avec plusieurs cles contenant les infos de la transaction recues dans la requete du front au back + la currency
+          amount: ctx.request.body.amount * 100, // on veut le montant en centimes
+          currency: "eur",
+          description: ctx.request.body.title,
+          source: ctx.request.body.token, // stripe token recu par le front
+        });
+        // Je reponds a mon client avec ce que m'a repondu le serveur stripe (je transmet un objet contenant la clé status avec comme valeur la reponse status de stripe)
+        return { status: status };
+      } catch (error) {
+        // on change le statut de la reponse
+        ctx.response.status = 500; // signifie erreur interne
+        // on renvoie au client un message contenant l'erreur
+        return { message: error.message };
+      }
+    },
 
     // Bonus : Un utilisateur ne peut poster une offre que s'il en est le propriétaire
     // methode 1 : etendre le comportement du controller
+    // Jai commenté cette methode car jai implementer la methode 2 (voir fichier is-authorized.js)
 
     // pour moifier le controlller de la route create aussi, il suffit de rajouter une clé create, de même que nous avons ajouté la clé deleteAll
 
