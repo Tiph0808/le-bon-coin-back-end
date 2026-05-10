@@ -57,6 +57,19 @@ module.exports = createCoreController(
           description: ctx.request.body.title,
           source: ctx.request.body.token, // stripe token recu par le front
         });
+
+        // Bonus perso :)
+        // Pour que l'offre soit retirée de la liste :
+        // j'etend le comportement de ce controller: je veux qu'apres validation de l'achat, l'annonce soit supprimée :
+        // Pour manipuler mes donnees je dois faire appel a l'entityService de Strapi :
+        // Et j'ai besoin de l'id de l'offre envoyée dans ma requete cote front ( ou ca? console.log(ctx.request.body.id): renvoie bien l'id de l'offre achetée)
+        if (status === "succeeded") {
+          await strapi.entityService.delete(
+            "api::offer.offer",
+            ctx.request.body.id
+          );
+        }
+
         // Je reponds a mon client avec ce que m'a repondu le serveur stripe (je transmet un objet contenant la clé status avec comme valeur la reponse status de stripe)
         return { status: status };
       } catch (error) {
