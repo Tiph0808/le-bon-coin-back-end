@@ -30,11 +30,11 @@ module.exports = createCoreController(
           // on rajoute un 3eme argument pour déployer la clé offers (et ainsi recuperer les references vers les offres qu'il a posté)
           { populate: ["offers"] }
         );
-        console.log(user); // renvoi les infos de l'user contenant une clé "offers" qui renvoi un tableau d'objets avec toutes les offres qu'il a posté et leurs infos
+        //console.log(user); // renvoi les infos de l'user contenant une clé "offers" qui renvoi un tableau d'objets avec toutes les offres qu'il a posté et leurs infos
 
         // On doit maintenant parcourir le tableau de références (=d'offres) avec une boucle :
         for (let i = 0; i < user.offers.length; i++) {
-          console.log(user.offers[i]); // affiche les offres et leurs infos
+          //console.log(user.offers[i]); // affiche les offres et leurs infos
           // Pour supprimer chacune d'entre elles grâce à la méthode delete de l'Entity Service API de Strapi,
           // il nous faut leur id (car c'est le 2eme arg)
           const offer = user.offers[i];
@@ -76,6 +76,42 @@ module.exports = createCoreController(
         // on change le statut de la reponse
         ctx.response.status = 500; // signifie erreur interne
         // on renvoie au client un message contenant l'erreur
+        return { message: error.message };
+      }
+    },
+    // Je modifie le controller de la route update pour supprimer les anciennes photos si de nouvelles photos sont selectionnées
+    async update(ctx) {
+      try {
+        // je recupère l'id de l'offre dans la requete envoyee a strapi
+        const offerId = ctx.params.id;
+        // Grace a cette id et a l'entityService de Strapi je recupere l'offre correspondante dans ma bdd
+        // 2eme arg : id de l'offre, 3eme argument la/les clés que l'on veut populate quand on recupere l'offre
+        const offer = await strapi.entityService.findOne(
+          "api::offer.offer",
+          offerId,
+          { populate: ["picture"] }
+        );
+        console.log(offer);
+        // Si de nouvelles photos ont été selectionnées dans le form
+        if (ctx.request.files?.["files.picture"]) {
+          //  Alors Je boucle sur le tableau des anciennes photos de l'offre pour les supprimer une par une
+          for (let i = 0; i < offer.picture.length; i++) {
+            const picture = offer.picture[i];
+            // je supprime donc les photos qui ont été enregistrées précedemment dans la collection "plugin/upload de strapi" grace a leur id.
+            await strapi.entityService.delete(
+              "plugin::upload.file",
+              picture.id
+            );
+          }
+        }
+        // que de nouvelles photos aient ete selectionnees ou pas on doit mettre a jour l'offre ! on appelle donc le comportement normal (par defaut) du controller de la route update, qui va mettre a jourles champs de l'offre et upload les nouvelles photos si il y en a :
+
+        return await super.update(ctx);
+
+        // ATTENTION : Comme pour les autres controllers modifiés ilfaut toujours un retrun a la fin, sans return le controller s'execute mais ne renvoie rien au client coté front
+        // ( dans ce cas, les photos seraient suprrimées mais l'offre ne se mettrait pas a jour dans la bdd)
+      } catch (error) {
+        ctx.response.status = 500;
         return { message: error.message };
       }
     },
