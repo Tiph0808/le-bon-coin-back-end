@@ -30,7 +30,10 @@ module.exports = [
   {
     name: "strapi::cors",
     config: {
-      origin: ["http://localhost:5173"],
+      origin: [
+        "http://localhost:5173",
+        "https://https://le-bon-coin-tiph0808.netlify.app",
+      ],
       methods: ["GET", "POST", "PUT", "DELETE"],
       headers: ["Content-Type", "Authorization"],
     },
