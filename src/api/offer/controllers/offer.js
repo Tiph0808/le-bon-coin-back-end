@@ -153,9 +153,17 @@ module.exports = createCoreController(
           // si non , on veut le comportement normal de la route : Pour cela on utilise la variable SUPER (p.27 cours sem2)
         } else {
           // await super.create(ctx); // ceci renvoi un objet dont on doit destructurer les clé data et meta
-          const { data, meta } = await super.create(ctx);
-          return { data, meta };
+          // const { data, meta } = await super.create(ctx);
+          // return { data, meta };
           // ces deux dernieres lignes je ne comprends pas mais je fais ce qu'il dit LOL
+
+          // essai pour fixer le bug de la mise en ligne avec strapi production.qui ne semble pas reconnaitre le champ owner a la creation dune annonce depuis le body en form-data. on va le relier explicitement
+
+          const { data, meta } = await super.create(ctx);
+          await strapi.entityService.update("api::offer.offer", data.id, {
+            data: { owner: ownerId },
+          });
+          return { data, meta };
         }
       } catch (error) {
         ctx.response.status = 500;
