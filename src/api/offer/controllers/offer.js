@@ -119,52 +119,75 @@ module.exports = createCoreController(
     // Bonus : Un utilisateur ne peut poster une offre que s'il en est le propriétaire
     // methode 1 : etendre le comportement du controller
     // Jai commenté cette methode car jai implementer la methode 2 (voir fichier is-authorized.js)
+    // Methode 1 :
+    //  async create(ctx){
+    //try {
+    //         //console.log(ctx.state.user); // affiche les données de l'utilsateur qui fait la requete
+    //         //
+    //         // on recupère l'id :
+    //         const requesterId = ctx.state.user.id;
+    //         //console.log(requesterId);
 
-    // pour moifier le controlller de la route create aussi, il suffit de rajouter une clé create, de même que nous avons ajouté la clé deleteAll
+    //         // on doit maintenant verifier que cet id est le même que celui envoyé dans le body de la requete (clé owner) lors de la creation de l'offre.
+    //         // cet id se trouve donc dans ctx.request.body
+    //         // console.log(ctx.request.body) // : renvoi un objet avec une clé data (mais celle ci ne contient pas un objet mais une string!!!)
+    //         // console.log(typeof ctx.request.body.data); // renvoi "string"
+    //         // l'id devrai normalement se trouver dans la clé owner de l'objet contenu dans data, cad  dans : ctx.request.body.data.owner mais comme c est une string ca ne fonctionnera pas  :
+    //         // console.log(ctx.request.body.data.owner); // Ceci renvoi donc undefined ds le terminal
+    //         // Pourquoi? (cf p26 des cours sem3)
+    //         // car la requete a été envoyée avec un form data donc les données de la ligne data c'est a dire l'objet envoyé contenant les paires clé-valeurs a ete transformé en une string automatiquement
+    //         // donc ctx.request.body.data est en fait une string, c est pour ça que console.log (ctx.request.body.data.owner)  renvoie undefined!
+    //         // pour recupérer des données de cette string ,
+    //         // il faut la "parser" : càd le retransformé en objet a l'aide la methode JSON.parse()
+    //         const parsedBody = JSON.parse(ctx.request.body.data);
+    //         console.log(parsedBody); // renvoi cet fois un objet avec toutes les paires clés valeurs de la ligne data du form data
+    //         // console.log(typeof parsedBody); // renvoi "object"
+    //         // maintenant on peut recupérer l'id contenue dans la clé owner :
+    //         const ownerId = parsedBody.owner;
+    //         // si les id sont differentes ont doit d'apres les consignes de l'exercice renvoyer un status 403
+    //         if (requesterId !== ownerId) {
+    //           ctx.response.status = 403;
+    //           // on renvoie en plus un message
+    //           return { message: "you must be the offer's owner" };
+    //           // si non , on veut le comportement normal de la route : Pour cela on utilise la variable SUPER (p.27 cours sem2)
+    //         } else {
+    //           // On crée l'offre normalement
+    //           const { data, meta } = await super.create(ctx);
+    //           // Mais en plus, on force l'enrgistrement du owner dans la bdd lors de la creation de l'annonce
+    //           // Pourquoi? Parce qu on a constaté qu' en production Strapi ignore le champ owner envoyé depuis le formDatae
+    //           await strapi.entityService.update("api::offer.offer", data.id, {
+    //             data: { owner: requesterId },
+    //           });
+    //           return { data, meta };
+    //         }
+    //       } catch (error) {
+    //         ctx.response.status = 500;
+    //         return { message: error.message };
+    //       }
+    //     },
+    //   })
+    //  );
+
+    //Je modifie le comportement de mon controller pour forcer l'enregistrement du owner lors d'une creation d'offre
+    // Pourquoi? Parce qu on a constaté qu' en production Strapi ignore le champ owner envoyé depuis le formDatae
+
+    // NOTE : Methode 2 : le controller n'est modifié que pour forcer l'enregistrement du owner car la policy is-authorized est appliquée aussi à la route create c'est donc elle qui va gérer en AMONT du controller, la verification que le user connecté est bien le owner de l'offre (voir fichier is-authorized.js)
 
     async create(ctx) {
       try {
         //console.log(ctx.state.user); // affiche les données de l'utilsateur qui fait la requete
+        //
         // on recupère l'id :
         const requesterId = ctx.state.user.id;
         //console.log(requesterId);
 
-        // on doit maintenant verifier que cet id est le même que celui envoyé dans le body de la requete (clé owner) lors de la creation de l'offre.
-        // cet id se trouve donc dans ctx.request.body
-        // console.log(ctx.request.body) // : renvoi un objet avec une clé data (mais celle ci ne contient pas un objet mais une string!!!)
-        // console.log(typeof ctx.request.body.data); // renvoi "string"
-        // l'id devrai normalement se trouver dans la clé owner de l'objet contenu dans data, cad  dans : ctx.request.body.data.owner mais comme c est une string ca ne fonctionnera pas  :
-        // console.log(ctx.request.body.data.owner); // Ceci renvoi donc undefined ds le terminal
-        // Pourquoi? (cf p26 des cours sem3)
-        // car la requete a été envoyée avec un form data donc les données de la ligne data c'est a dire l'objet envoyé contenant les paires clé-valeurs a ete transformé en une string automatiquement
-        // donc ctx.request.body.data est en fait une string, c est pour ça que console.log (ctx.request.body.data.owner)  renvoie undefined!
-        // pour recupérer des données de cette string ,
-        // il faut la "parser" : càd le retransformé en objet a l'aide la methode JSON.parse()
-        const parsedBody = JSON.parse(ctx.request.body.data);
-        console.log(parsedBody); // renvoi cet fois un objet avec toutes les paires clés valeurs de la ligne data du form data
-        // console.log(typeof parsedBody); // renvoi "object"
-        // maintenant on peut recupérer l'id contenue dans la clé owner :
-        const ownerId = parsedBody.owner;
-        // si les id sont differentes ont doit d'apres les consignes de l'exercice renvoyer un status 403
-        if (requesterId !== ownerId) {
-          ctx.response.status = 403;
-          // on renvoie en plus un message
-          return { message: "you must be the offer's owner" };
-          // si non , on veut le comportement normal de la route : Pour cela on utilise la variable SUPER (p.27 cours sem2)
-        } else {
-          // await super.create(ctx); // ceci renvoi un objet dont on doit destructurer les clé data et meta
-          // const { data, meta } = await super.create(ctx);
-          // return { data, meta };
-          // ces deux dernieres lignes je ne comprends pas mais je fais ce qu'il dit LOL
-
-          // essai pour fixer le bug de la mise en ligne avec strapi production.qui ne semble pas reconnaitre le champ owner a la creation dune annonce depuis le body en form-data. on va le relier explicitement
-
-          const { data, meta } = await super.create(ctx);
-          await strapi.entityService.update("api::offer.offer", data.id, {
-            data: { owner: ownerId },
-          });
-          return { data, meta };
-        }
+        const { data, meta } = await super.create(ctx);
+        // Mais en plus, on force l'enrgistrement du owner dans la bdd lors de la creation de l'annonce
+        // Pourquoi? Parce qu on a constaté qu' en production Strapi ignore le champ owner envoyé depuis le formDatae
+        await strapi.entityService.update("api::offer.offer", data.id, {
+          data: { owner: requesterId },
+        });
+        return { data, meta };
       } catch (error) {
         ctx.response.status = 500;
         return { message: error.message };

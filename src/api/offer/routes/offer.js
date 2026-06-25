@@ -10,10 +10,10 @@ const { createCoreRouter } = require("@strapi/strapi").factories;
 module.exports = createCoreRouter("api::offer.offer", {
   config: {
     update: {
-      policies: ["api::offer.is-authorized"],
+      policies: ["api::offer.is-authorized"], // = "japplique ma policy isAuthorized à ma route create"
     },
     delete: {
-      policies: ["api::offer.is-authorized"],
+      policies: ["api::offer.is-authorized"], // = "japplique ma policy isAuthorized à ma route delete"
     },
     // RMQ : dans ce cas on a appliqué la meme policy à deux routes differentes, car ces routes ont le meme comprtement :
     // Que ce soit delete ou update on envoie l'id de l'offre à supprimer/modifier en params
